@@ -138,6 +138,9 @@ fun AppRouter(
                 }
             )
         }
+        composable(AppRoutes.ContactEdit.name) {
+            // TODO
+        }
         composable(AppRoutes.CreateContact.name) {
             CreateContactScreen(onNavigateUp = { navController.navigateUp() })
         }

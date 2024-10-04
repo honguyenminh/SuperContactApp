@@ -103,6 +103,7 @@ fun CreateContactScreen(
                 value = name, onValueChange = { name = it },
                 label = { Text("Display name") },
                 textStyle = typography.bodyLarge,
+                singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)

@@ -16,11 +16,19 @@ class ContactListViewModel(initState: ContactListUiState = ContactListUiState())
 
     private lateinit var _contacts: List<Contact>
 
-    fun changeSortOrder(context: Context, isAscending: Boolean) {
+    fun changeSortOrder(isAscending: Boolean) {
         _uiState.update {
-            it.copy(isSortedAscending = isAscending)
+            it.copy(
+                isSortedAscending = isAscending,
+                contacts = _contacts.sortedWith { c1, c2 ->
+                    if (isAscending) {
+                        c1.name.compareTo(c2.name, ignoreCase = true)
+                    } else {
+                        c2.name.compareTo(c1.name, ignoreCase = true)
+                    }
+                }
+            )
         }
-        refreshContacts(context)
     }
 
     fun refreshContacts(context: Context) {

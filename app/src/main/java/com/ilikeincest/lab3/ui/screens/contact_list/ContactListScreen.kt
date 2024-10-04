@@ -62,6 +62,7 @@ fun ContactListScreen(
     val uiState by viewModel.uiState.collectAsState()
     var moreMenuExpanded by remember { mutableStateOf(false) }
     var showSelectMultipleGuideDialog by remember { mutableStateOf(false) }
+    var showConfirmDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -104,7 +105,7 @@ fun ContactListScreen(
                 actions = {
                     if (uiState.selectedItems.isNotEmpty()) {
                         IconButton(
-                            onClick = { viewModel.deleteSelected(context) },
+                            onClick = { showConfirmDeleteDialog = true },
                             colors = IconButtonDefaults.iconButtonColors(contentColor = appBarContentColor)
                         ) {
                             Icon(Icons.Default.Delete, "Delete selected contacts")
@@ -117,12 +118,11 @@ fun ContactListScreen(
                         Icon(Icons.Default.MoreVert, "More options")
                     }
                     DropdownMenu(expanded = moreMenuExpanded, onDismissRequest = { moreMenuExpanded = false }) {
-                        // TODO: show only one at a time
                         if (uiState.isSortedAscending) {
                             DropdownMenuItem(
                                 text = { Text("Sort descending") },
                                 onClick = {
-                                    viewModel.changeSortOrder(context, false)
+                                    viewModel.changeSortOrder(false)
                                     moreMenuExpanded = false
                                 }
                             )
@@ -131,7 +131,7 @@ fun ContactListScreen(
                             DropdownMenuItem(
                                 text = { Text("Sort ascending") },
                                 onClick = {
-                                    viewModel.changeSortOrder(context, true)
+                                    viewModel.changeSortOrder(true)
                                     moreMenuExpanded = false
                                 }
                             )
@@ -173,6 +173,28 @@ fun ContactListScreen(
                 ) }
             )
         }
+
+        if (showConfirmDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showConfirmDeleteDialog = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showConfirmDeleteDialog = false
+                        viewModel.deleteSelected(context)
+                    }) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConfirmDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+                title = { Text("Delete ${uiState.selectedItems.size} contact${if (uiState.selectedItems.size > 1) "s" else ""}?") },
+                text = { Text("These contacts will be permanently deleted from your device") }
+            )
+        }
+
         LazyColumn(modifier = Modifier
             .padding(innerPadding)
             .padding(top = 12.dp)
