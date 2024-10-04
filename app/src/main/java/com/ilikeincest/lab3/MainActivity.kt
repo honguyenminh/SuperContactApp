@@ -132,6 +132,7 @@ fun AppRouter(
         composable(AppRoutes.ContactDetail.name) {
             ContactDetailScreen(
                 contactId = currentContactId,
+                onNavigateUp = { navController.navigateUp() },
                 onEditContactClicked = {
                     navController.navigate(AppRoutes.ContactEdit.name)
                 }

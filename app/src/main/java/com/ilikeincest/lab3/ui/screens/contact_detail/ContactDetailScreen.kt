@@ -39,17 +39,19 @@ import com.ilikeincest.lab3.ui.components.getMonogram
 @Composable
 fun ContactDetailScreen(
     contactId: String,
+    onNavigateUp: () -> Unit,
     onEditContactClicked: () -> Unit
 ) {
     val context = LocalContext.current
     val contact = remember { getContact(contactId, context) }
-    ContactDetailScreenContent(contact, onEditContactClicked)
+    ContactDetailScreenContent(contact, onNavigateUp, onEditContactClicked)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ContactDetailScreenContent(
     contact: Contact,
+    onNavigateUp: () -> Unit,
     onEditContactClicked: () -> Unit
 ) {
     val clipboard = LocalClipboardManager.current
@@ -57,7 +59,7 @@ private fun ContactDetailScreenContent(
     Scaffold(
         topBar = { TopAppBar(title = {},
             navigationIcon = {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = onNavigateUp) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                 }
             },
@@ -129,6 +131,6 @@ private fun ContactDetailPreview() {
             name = "Nguyễn Văn An",
             phoneNumber = listOf("0598765123", "0978666543"),
             id = "", photoUri = "",
-        ), onEditContactClicked = {}
+        ), {}, {}
     )
 }
