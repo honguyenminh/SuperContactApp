@@ -14,6 +14,8 @@ class ContactListViewModel(initState: ContactListUiState = ContactListUiState())
     private var _uiState = MutableStateFlow(initState)
     val uiState: StateFlow<ContactListUiState> =_uiState.asStateFlow()
 
+    private lateinit var _contacts: List<Contact>
+
     fun changeSortOrder(context: Context, isAscending: Boolean) {
         _uiState.update {
             it.copy(isSortedAscending = isAscending)
@@ -22,8 +24,15 @@ class ContactListViewModel(initState: ContactListUiState = ContactListUiState())
     }
 
     fun refreshContacts(context: Context) {
+        _contacts = getContacts(context).sortedWith { c1, c2 ->
+            if (_uiState.value.isSortedAscending) {
+                c1.name.compareTo(c2.name, ignoreCase = true)
+            } else {
+                c2.name.compareTo(c1.name, ignoreCase = true)
+            }
+        }
         _uiState.update {
-            it.copy(contacts = getContacts(context, uiState.value.isSortedAscending))
+            it.copy(contacts = _contacts)
         }
         clearSelected()
     }

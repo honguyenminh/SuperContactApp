@@ -7,7 +7,7 @@ import android.provider.ContactsContract
 import android.util.Log
 import com.ilikeincest.lab3.model.Contact
 
-fun getContacts(context: Context, isAscending: Boolean = true): List<Contact> {
+fun getContacts(context: Context): List<Contact> {
     val contactsList = mutableListOf<Contact>()
 
     val contentResolver = context.contentResolver
@@ -19,9 +19,7 @@ fun getContacts(context: Context, isAscending: Boolean = true): List<Contact> {
     )
     val cursor = contentResolver.query(
         uri, projection,
-        null, null,
-        // sort by display name
-        "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} ${if (isAscending) "ASC" else "DESC"}"
+        null, null, null
     )
     if (cursor != null && cursor.moveToFirst()) {
         do {
