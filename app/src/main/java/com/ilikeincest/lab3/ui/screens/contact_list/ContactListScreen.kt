@@ -49,11 +49,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilikeincest.lab3.model.Contact
 import com.ilikeincest.lab3.ui.components.AsyncAvatarFallbackMonogram
+import com.ilikeincest.lab3.ui.components.getMonogram
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ContactListScreen(
     onCreateContactClicked: () -> Unit,
+    onContactClicked: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ContactListViewModel = viewModel()
 ) {
@@ -171,10 +173,9 @@ fun ContactListScreen(
                 ) }
             )
         }
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(top = 12.dp)
+        LazyColumn(modifier = Modifier
+            .padding(innerPadding)
+            .padding(top = 12.dp)
         ) {
             items(uiState.contacts, key = { it.id }) {
                 ContactItem(
@@ -182,10 +183,10 @@ fun ContactListScreen(
                     isSelected = uiState.selectedItems.contains(it.id),
                     modifier = Modifier.combinedClickable(
                         onClick = {
-                            if (uiState.selectedItems.isEmpty()) {
-                                // TODO: go to edit/view page
-                            }
-                            else viewModel.selectContact(it.id)
+                            if (uiState.selectedItems.isEmpty())
+                                onContactClicked(it.id)
+                            else
+                                viewModel.selectContact(it.id)
                         },
                         onLongClick = { viewModel.selectContact(it.id) }
                     )
@@ -222,7 +223,7 @@ fun ContactItem(contact: Contact, isSelected: Boolean, modifier: Modifier = Modi
             AsyncAvatarFallbackMonogram(
                 model = contact.photoUri,
                 contentDescription = "contact avatar",
-                monogram = contact.name.split(" ").take(2).map { it.first().uppercaseChar() }.joinToString(""),
+                monogram = getMonogram(contact.name),
             )
         },
         colors = itemColors,
@@ -245,6 +246,7 @@ private fun ContactItemSelectedPreview() {
 private fun ContactList() {
     ContactListScreen(
         onCreateContactClicked = {},
+        onContactClicked = {},
         viewModel = ContactListViewModel(ContactListUiState(listOf(
             Contact("1", "John Doe", listOf()),
             Contact("2", "John Doe Niga", listOf()),

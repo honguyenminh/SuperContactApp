@@ -17,6 +17,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -24,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.ilikeincest.lab3.ui.screens.contact_detail.ContactDetailScreen
 import com.ilikeincest.lab3.ui.screens.contact_list.ContactListScreen
 import com.ilikeincest.lab3.ui.screens.create_contact.CreateContactScreen
 import com.ilikeincest.lab3.ui.theme.Lab3Theme
@@ -104,6 +109,7 @@ enum class AppRoutes {
 fun AppRouter(
     navController: NavHostController = rememberNavController()
 ) {
+    var currentContactId by remember { mutableStateOf("") }
     NavHost(
         navController = navController,
         startDestination = AppRoutes.ContactList.name,
@@ -116,6 +122,18 @@ fun AppRouter(
             ContactListScreen(
                 onCreateContactClicked = {
                     navController.navigate(AppRoutes.CreateContact.name)
+                },
+                onContactClicked = { contactId ->
+                    currentContactId = contactId
+                    navController.navigate(AppRoutes.ContactDetail.name)
+                }
+            )
+        }
+        composable(AppRoutes.ContactDetail.name) {
+            ContactDetailScreen(
+                contactId = currentContactId,
+                onEditContactClicked = {
+                    navController.navigate(AppRoutes.ContactEdit.name)
                 }
             )
         }

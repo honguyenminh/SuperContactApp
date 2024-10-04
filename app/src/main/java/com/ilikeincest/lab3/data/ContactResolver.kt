@@ -7,6 +7,49 @@ import android.provider.ContactsContract
 import android.util.Log
 import com.ilikeincest.lab3.model.Contact
 
+fun getContact(id: String, context: Context): Contact {
+    val contentResolver = context.contentResolver
+    val uri = ContactsContract.Contacts.CONTENT_URI
+    val projection = arrayOf(
+        ContactsContract.Contacts.DISPLAY_NAME,
+        ContactsContract.Contacts.PHOTO_URI
+    )
+    val selection = "${ContactsContract.Contacts._ID} = ?"
+    val selectionArgs = arrayOf(id)
+    val cursor = contentResolver.query(
+        uri, projection, selection, selectionArgs, null
+    )
+    if (cursor != null && cursor.moveToFirst()) {
+        val name = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME))
+        val photoUri = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.PHOTO_URI))
+
+        val phoneCursor = contentResolver.query(
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
+            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+            arrayOf(id),
+            null
+        )
+
+        val phoneNumber = mutableListOf<String>()
+        if (phoneCursor != null && phoneCursor.moveToFirst()) {
+            do {
+                phoneNumber.add(
+                    phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(
+                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                    ))
+                )
+            } while (phoneCursor.moveToNext())
+            phoneCursor.close()
+        }
+
+        cursor.close()
+        return Contact(id, name, phoneNumber, photoUri)
+    }
+    cursor?.close()
+    return Contact("", "", emptyList(), "")
+}
+
 fun getContacts(context: Context): List<Contact> {
     val contactsList = mutableListOf<Contact>()
 
@@ -82,6 +125,7 @@ fun createContact(name: String, phones: List<String>, context: Context) {
 
         // Add phone numbers
         for (phone in phones) {
+            if (phone.isBlank()) continue
             val phoneValues = ContentValues().apply {
                 put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
                 put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)

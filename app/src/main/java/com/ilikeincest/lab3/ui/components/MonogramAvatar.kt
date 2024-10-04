@@ -18,6 +18,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+fun getMonogram(name: String): String {
+    return name
+        .split(" ")
+        .take(2)
+        .map { it.first().uppercaseChar() }
+        .joinToString("")
+}
+
 @Composable
 fun MonogramAvatar(
     monogram: String,
@@ -29,9 +37,7 @@ fun MonogramAvatar(
     val bgColor = colorScheme.primaryContainer
     Column(verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .size(size)
-            .background(color = bgColor, shape = CircleShape)
+        modifier = modifier.size(size).background(color = bgColor, shape = CircleShape)
     ) {
         Text(
             text = monogram, style = textStyle,
