@@ -33,7 +33,10 @@ fun MonogramAvatar(
             .size(size)
             .background(color = bgColor, shape = CircleShape)
     ) {
-        Text(text = monogram, style = textStyle)
+        Text(
+            text = monogram, style = textStyle,
+            color = colorScheme.onPrimaryContainer,
+        )
     }
 }
 

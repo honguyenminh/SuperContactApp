@@ -1,52 +1,32 @@
 package com.ilikeincest.lab3
 
 import android.Manifest
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.End
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Start
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
-import coil.compose.AsyncImage
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
-import com.ilikeincest.lab3.data.getContacts
-import com.ilikeincest.lab3.model.Contact
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.ilikeincest.lab3.ui.screens.contact_list.ContactListScreen
+import com.ilikeincest.lab3.ui.screens.create_contact.CreateContactScreen
 import com.ilikeincest.lab3.ui.theme.Lab3Theme
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,16 +43,30 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ContactApp() {
-    val contactPermissionState = rememberPermissionState(
-        permission = Manifest.permission.READ_CONTACTS,
-        onPermissionResult = { isGranted ->
-            if (isGranted) return@rememberPermissionState
+    val contactPermissionState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.WRITE_CONTACTS
+        ),
+        onPermissionsResult = { isGranted ->
             // TODO
+            if (isGranted[Manifest.permission.READ_CONTACTS] == true) {
+
+            }
+            else {
+
+            }
+            if (isGranted[Manifest.permission.WRITE_CONTACTS] == true) {
+
+            }
+            else {
+
+            }
         }
     )
 
-    if (!contactPermissionState.status.isGranted) {
-        val textToShow = if (contactPermissionState.status.shouldShowRationale) {
+    if (!contactPermissionState.allPermissionsGranted) {
+        val textToShow = if (contactPermissionState.shouldShowRationale) {
             // If the user has denied the permission but the rationale can be shown,
             // then gently explain why the app requires this permission
             "Contact permission is required for the app to work.\n" +
@@ -89,17 +83,44 @@ fun ContactApp() {
             text = { Text(textToShow) },
             onDismissRequest = {},
             confirmButton = {
-                TextButton(onClick = { contactPermissionState.launchPermissionRequest() }) {
+                TextButton(onClick = { contactPermissionState.launchMultiplePermissionRequest() }) {
                     Text("Confirm")
                 }
             },
         )
         return
     }
-    var contacts by remember { mutableStateOf(listOf<Contact>()) }
-    val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        contacts = getContacts(context)
+    AppRouter()
+}
+
+enum class AppRoutes {
+    ContactList,
+    ContactDetail,
+    ContactEdit,
+    CreateContact
+}
+
+@Composable
+fun AppRouter(
+    navController: NavHostController = rememberNavController()
+) {
+    NavHost(
+        navController = navController,
+        startDestination = AppRoutes.ContactList.name,
+        enterTransition = { slideIntoContainer(Start, tween(700)) },
+        popEnterTransition = { slideIntoContainer(End, tween(700)) },
+        exitTransition = { slideOutOfContainer(Start, tween(700)) },
+        popExitTransition = { slideOutOfContainer(End, tween(700)) }
+    ) {
+        composable(AppRoutes.ContactList.name) {
+            ContactListScreen(
+                onCreateContactClicked = {
+                    navController.navigate(AppRoutes.CreateContact.name)
+                }
+            )
+        }
+        composable(AppRoutes.CreateContact.name) {
+            CreateContactScreen(onNavigateUp = { navController.navigateUp() })
+        }
     }
-    ContactListScreen(contacts)
 }
