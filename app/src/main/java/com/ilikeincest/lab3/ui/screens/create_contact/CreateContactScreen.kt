@@ -1,13 +1,11 @@
 package com.ilikeincest.lab3.ui.screens.create_contact
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -27,21 +25,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PlatformImeOptions
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ilikeincest.lab3.R
 import com.ilikeincest.lab3.data.createContact
-import com.ilikeincest.lab3.model.Contact
+import com.ilikeincest.lab3.ui.theme.Lab3Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +45,6 @@ fun CreateContactScreen(
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var showConfirmBackDialog by rememberSaveable { mutableStateOf(false) }
-    // TODO: move logic to viewmodel
     var phones by rememberSaveable { mutableStateOf(listOf("")) }
     val context = LocalContext.current
 
@@ -73,7 +66,9 @@ fun CreateContactScreen(
                 Button(onClick = {
                     createContact(name, phones, context)
                     onNavigateUp()
-                }) {
+                },
+                    enabled = name.isNotBlank() && phones.any { it.isNotBlank() }
+                ) {
                     Text("Save")
                 }
                 Spacer(Modifier.width(12.dp))
@@ -96,7 +91,8 @@ fun CreateContactScreen(
         }
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
             OutlinedTextField(
@@ -143,8 +139,10 @@ fun CreateContactScreen(
     }
 }
 
-@Preview
+@PreviewLightDark
 @Composable
 private fun CreateContactScreenPreview() {
-    CreateContactScreen(onNavigateUp = {})
+    Lab3Theme {
+        CreateContactScreen(onNavigateUp = {})
+    }
 }
