@@ -8,6 +8,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.End
 import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.Start
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -51,21 +55,7 @@ fun ContactApp() {
             Manifest.permission.READ_CONTACTS,
             Manifest.permission.WRITE_CONTACTS
         ),
-        onPermissionsResult = { isGranted ->
-            // TODO
-            if (isGranted[Manifest.permission.READ_CONTACTS] == true) {
-
-            }
-            else {
-
-            }
-            if (isGranted[Manifest.permission.WRITE_CONTACTS] == true) {
-
-            }
-            else {
-
-            }
-        }
+        onPermissionsResult = {} // Add if needed
     )
 
     if (!contactPermissionState.allPermissionsGranted) {
@@ -111,10 +101,10 @@ fun AppRouter(
     NavHost(
         navController = navController,
         startDestination = AppRoutes.ContactList.name,
-        enterTransition = { slideIntoContainer(Start, tween(700)) },
-        popEnterTransition = { slideIntoContainer(End, tween(700)) },
-        exitTransition = { slideOutOfContainer(Start, tween(700)) },
-        popExitTransition = { slideOutOfContainer(End, tween(700)) }
+        enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
+        popEnterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
+        exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() },
+        popExitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
     ) {
         composable(AppRoutes.ContactList.name) {
             ContactListScreen(
