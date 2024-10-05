@@ -4,16 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.ilikeincest.lab3"
+    namespace = "com.someone.super_contact_app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ilikeincest.lab3"
+        applicationId = "com.someone.super_contact_app"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
