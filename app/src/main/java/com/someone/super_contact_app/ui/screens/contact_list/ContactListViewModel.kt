@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-
+// TODO: move viewmodel to app-wide activity
+// TODO: reload contacts only on data change
 class ContactListViewModel(initState: ContactListUiState = ContactListUiState()) : ViewModel() {
     private var _uiState = MutableStateFlow(initState)
     val uiState: StateFlow<ContactListUiState> =_uiState.asStateFlow()
