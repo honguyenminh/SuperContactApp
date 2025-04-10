@@ -47,6 +47,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.someone.super_contact_app.model.Contact
+import com.someone.super_contact_app.model.PhoneNumber
+import com.someone.super_contact_app.model.PhoneNumberType
 import com.someone.super_contact_app.ui.components.AsyncAvatarFallbackMonogram
 import com.someone.super_contact_app.ui.components.dialogs.ConfirmDeleteDialog
 import com.someone.super_contact_app.ui.components.getMonogram
@@ -63,7 +65,6 @@ fun ContactListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var moreMenuExpanded by remember { mutableStateOf(false) }
-    var showSelectMultipleGuideDialog by remember { mutableStateOf(false) }
     var showConfirmDeleteDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -145,10 +146,6 @@ fun ContactListScreen(
                             viewModel.selectAll(uiState.contacts)
                             moreMenuExpanded = false
                         })
-                        DropdownMenuItem(text = { Text("Select many") }, onClick = {
-                            showSelectMultipleGuideDialog = true
-                            moreMenuExpanded = false
-                        })
                     }
                 }
             )
@@ -162,22 +159,6 @@ fun ContactListScreen(
         },
         modifier = modifier.fillMaxSize()
     ) { innerPadding ->
-        if (showSelectMultipleGuideDialog) {
-            AlertDialog(
-                onDismissRequest = { showSelectMultipleGuideDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showSelectMultipleGuideDialog = false }) {
-                        Text("OK")
-                    }
-                },
-                title = { Text("Select multiple guide") },
-                text = { Text(
-                    "To select multiple contacts, press and hold the contact.\n" +
-                        "The way it should be. Not through a menu like this."
-                ) }
-            )
-        }
-
         ConfirmDeleteDialog(
             contactsCount = uiState.selectedItems.size,
             isVisible = showConfirmDeleteDialog,
@@ -226,7 +207,8 @@ fun ContactItem(contact: Contact, isSelected: Boolean, modifier: Modifier = Modi
                         .background(colorScheme.tertiaryContainer, CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Check, contentDescription = "Selected",
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Selected",
                         tint = colorScheme.onTertiaryContainer,
                         modifier = Modifier
                             .size(24.dp)
@@ -250,14 +232,14 @@ fun ContactItem(contact: Contact, isSelected: Boolean, modifier: Modifier = Modi
 @Composable
 private fun ContactItemPreview() {
     Lab3Theme {
-        ContactItem(Contact("1", "John Doe", listOf("1234567890")), false)
+        ContactItem(Contact("1", "John Doe", listOf(PhoneNumber("0598765123", PhoneNumberType.Home))), false)
     }
 }
 @PreviewLightDark
 @Composable
 private fun ContactItemSelectedPreview() {
     Lab3Theme {
-        ContactItem(Contact("1", "John Doe", listOf("1234567890")), true)
+        ContactItem(Contact("1", "John Doe", listOf(PhoneNumber("0598765123", PhoneNumberType.Home))), true)
     }
 }
 @PreviewLightDark

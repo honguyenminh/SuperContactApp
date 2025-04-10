@@ -42,6 +42,8 @@ import com.someone.super_contact_app.data.deleteContacts
 import com.someone.super_contact_app.data.getContact
 import com.someone.super_contact_app.data.updateContact
 import com.someone.super_contact_app.model.Contact
+import com.someone.super_contact_app.model.PhoneNumber
+import com.someone.super_contact_app.model.PhoneNumberType
 import com.someone.super_contact_app.ui.components.AsyncAvatarFallbackMonogram
 import com.someone.super_contact_app.ui.components.dialogs.ConfirmBackDialog
 import com.someone.super_contact_app.ui.components.dialogs.ConfirmDeleteDialog
@@ -69,7 +71,7 @@ private fun ContactEditScreenContent(
     var showConfirmBackDialog by rememberSaveable { mutableStateOf(false) }
     var showConfirmDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var name by remember { mutableStateOf(contact.name) }
-    var phones by rememberSaveable { mutableStateOf(contact.phoneNumber) }
+    var phones by rememberSaveable { mutableStateOf(contact.phoneNumbers) }
     val context = LocalContext.current
 
     ConfirmDeleteDialog(
@@ -107,7 +109,7 @@ private fun ContactEditScreenContent(
                         )
                         onNavigateUp()
                     },
-                    enabled = name.isNotBlank() && phones.any { it.isNotBlank() }
+                    enabled = name.isNotBlank() && phones.any { it.number.isNotBlank() }
                 ) {
                     Text("Save")
                 }
@@ -155,11 +157,11 @@ private fun ContactEditScreenContent(
             )
             phones.forEachIndexed { index, value ->
                 OutlinedTextField(
-                    value = value,
+                    value = value.number, // TODO
                     onValueChange = {
                         // only allow digits
-                        val newPhone = it.filter { char -> char.isDigit() }
-                        phones = phones.toMutableList().apply { set(index, newPhone) }
+                        val newNumber = it.filter { char -> char.isDigit() }
+                        phones = phones.toMutableList().apply { set(index, value.copy(number = newNumber)) }
                     },
                     label = { Text("Phone number #${index+1}") },
                     textStyle = typography.bodyLarge,
@@ -179,7 +181,10 @@ private fun ContactEditScreenContent(
                         .padding(horizontal = 16.dp)
                 )
             }
-            TextButton(onClick = { phones = phones + "" },
+            TextButton(
+                onClick = {
+                    phones += PhoneNumber("", PhoneNumberType.Home)
+                },
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Text("Add phone")
@@ -192,7 +197,7 @@ private fun ContactEditScreenContent(
 @Composable
 private fun ContactEdit() {
     ContactEditScreenContent(
-        Contact("", "John Doe", listOf("0123456789"), null),
+        Contact("", "John Doe", listOf(PhoneNumber("0123456789", PhoneNumberType.Home)), null),
         {}, {}
     )
 }

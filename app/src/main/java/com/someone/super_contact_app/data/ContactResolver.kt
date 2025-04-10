@@ -4,8 +4,14 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.provider.ContactsContract
+import android.provider.ContactsContract.CommonDataKinds.Phone
 import android.util.Log
+import com.someone.super_contact_app.data.util.nativeEnumToPhoneType
+import com.someone.super_contact_app.data.util.toNativeEnum
 import com.someone.super_contact_app.model.Contact
+import com.someone.super_contact_app.model.PhoneNumber
+import com.someone.super_contact_app.model.PhoneNumberType
+import com.someone.super_contact_app.model.PhoneNumberType.*
 
 fun getContact(id: String, context: Context): Contact {
     val contentResolver = context.contentResolver
@@ -24,21 +30,23 @@ fun getContact(id: String, context: Context): Contact {
         val photoUri = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.PHOTO_URI))
 
         val phoneCursor = contentResolver.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+            Phone.CONTENT_URI,
+            arrayOf(Phone.NUMBER, Phone.TYPE),
+            Phone.CONTACT_ID + " = ?",
             arrayOf(id),
             null
         )
 
-        val phoneNumber = mutableListOf<String>()
+        val phoneNumber = mutableListOf<PhoneNumber>()
         if (phoneCursor != null && phoneCursor.moveToFirst()) {
             do {
-                phoneNumber.add(
-                    phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(
-                        ContactsContract.CommonDataKinds.Phone.NUMBER
-                    ))
-                )
+                val number = phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(
+                    Phone.NUMBER
+                ))
+                val type = phoneCursor.getInt(phoneCursor.getColumnIndexOrThrow(
+                    Phone.TYPE
+                ))
+                phoneNumber.add(PhoneNumber(number, nativeEnumToPhoneType(type)))
             } while (phoneCursor.moveToNext())
             phoneCursor.close()
         }
@@ -71,21 +79,23 @@ fun getContacts(context: Context): List<Contact> {
             val photoUri = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.Contacts.PHOTO_URI))
 
             val phoneCursor = contentResolver.query(
-                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                arrayOf(ContactsContract.CommonDataKinds.Phone.NUMBER),
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                Phone.CONTENT_URI,
+                arrayOf(Phone.NUMBER, Phone.TYPE),
+                Phone.CONTACT_ID + " = ?",
                 arrayOf(id),
                 null
             )
 
-            val phoneNumber = mutableListOf<String>()
+            val phoneNumber = mutableListOf<PhoneNumber>()
             if (phoneCursor != null && phoneCursor.moveToFirst()) {
                 do {
-                    phoneNumber.add(
-                        phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(
-                            ContactsContract.CommonDataKinds.Phone.NUMBER
-                        ))
-                    )
+                    val number = phoneCursor.getString(phoneCursor.getColumnIndexOrThrow(
+                        Phone.NUMBER
+                    ))
+                    val type = phoneCursor.getInt(phoneCursor.getColumnIndexOrThrow(
+                        Phone.TYPE
+                    ))
+                    phoneNumber.add(PhoneNumber(number, nativeEnumToPhoneType(type)))
                 } while (phoneCursor.moveToNext())
                 phoneCursor.close()
             }
@@ -107,7 +117,7 @@ fun deleteContacts(contactIds: List<String>, context: Context) {
     }
 }
 
-fun createContact(name: String, phones: List<String>, context: Context) {
+fun createContact(name: String, phones: List<PhoneNumber>, context: Context) {
     val contentResolver = context.contentResolver
     // Create a new raw contact
     val rawContactUri = contentResolver.insert(ContactsContract.RawContacts.CONTENT_URI, ContentValues())
@@ -124,19 +134,19 @@ fun createContact(name: String, phones: List<String>, context: Context) {
 
         // Add phone numbers
         for (phone in phones) {
-            if (phone.isBlank()) continue
+            if (phone.number.isBlank()) continue
             val phoneValues = ContentValues().apply {
                 put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
-                put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-                put(ContactsContract.CommonDataKinds.Phone.NUMBER, phone)
-                put(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+                put(ContactsContract.Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+                put(Phone.NUMBER, phone.number)
+                put(Phone.TYPE, phone.type.toNativeEnum())
             }
             contentResolver.insert(ContactsContract.Data.CONTENT_URI, phoneValues)
         }
     }
 }
 
-fun updateContact(contactId: String, name: String, phones: List<String>, context: Context) {
+fun updateContact(contactId: String, name: String, phones: List<PhoneNumber>, context: Context) {
     val contentResolver = context.contentResolver
 
     // Update contact name
@@ -150,7 +160,7 @@ fun updateContact(contactId: String, name: String, phones: List<String>, context
 
     // Delete old phone numbers
     val phoneSelection = "${ContactsContract.Data.CONTACT_ID} = ? AND ${ContactsContract.Data.MIMETYPE} = ?"
-    val phoneSelectionArgs = arrayOf(contactId, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+    val phoneSelectionArgs = arrayOf(contactId, Phone.CONTENT_ITEM_TYPE)
     contentResolver.delete(ContactsContract.Data.CONTENT_URI, phoneSelection, phoneSelectionArgs)
 
     // Add new phone numbers
@@ -163,7 +173,7 @@ fun updateContact(contactId: String, name: String, phones: List<String>, context
     val rawContactId = rawContacts.first()
     // insert phone numbers linked to that raw contact
     for (phone in phones) {
-        if (phone.isBlank()) continue
+        if (phone.number.isBlank()) continue
         insertPhoneNumber(rawContactId, phone, context)
     }
 }
@@ -188,16 +198,17 @@ private fun getRawContactId(contactId: String, context: Context): List<Long> {
     return rawContactIds
 }
 
-fun insertPhoneNumber(rawContactId: Long, phoneNumber: String, context: Context) {
+fun insertPhoneNumber(rawContactId: Long, phoneNumber: PhoneNumber, context: Context) {
     val contentResolver = context.contentResolver
 
     val phoneValues = ContentValues().apply {
         put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId)
-        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
-        put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber)
+        put(ContactsContract.Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+        put(Phone.NUMBER, phoneNumber.number)
         // TODO: add ability to choose phone type
-        put(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE)
+        put(Phone.TYPE, phoneNumber.type.toNativeEnum())
     }
 
     contentResolver.insert(ContactsContract.Data.CONTENT_URI, phoneValues)
 }
+

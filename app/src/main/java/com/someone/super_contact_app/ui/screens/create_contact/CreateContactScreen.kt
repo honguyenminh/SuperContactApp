@@ -34,6 +34,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.someone.super_contact_app.R
 import com.someone.super_contact_app.data.createContact
+import com.someone.super_contact_app.model.PhoneNumber
+import com.someone.super_contact_app.model.PhoneNumberType
 import com.someone.super_contact_app.ui.components.dialogs.ConfirmBackDialog
 import com.someone.super_contact_app.ui.theme.Lab3Theme
 
@@ -45,7 +47,7 @@ fun CreateContactScreen(
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var showConfirmBackDialog by rememberSaveable { mutableStateOf(false) }
-    var phones by rememberSaveable { mutableStateOf(listOf("")) }
+    var phones by rememberSaveable { mutableStateOf(listOf(PhoneNumber("", PhoneNumberType.Mobile))) }
     val context = LocalContext.current
 
     ConfirmBackDialog(
@@ -60,7 +62,7 @@ fun CreateContactScreen(
             navigationIcon = {
                 IconButton(
                     onClick = {
-                        if (name.isBlank() && phones.all { it.isBlank() })
+                        if (name.isBlank() && phones.all { it.number.isBlank() })
                             onNavigateUp()
                         else showConfirmBackDialog = true
                     }
@@ -74,7 +76,7 @@ fun CreateContactScreen(
                         createContact(name, phones, context)
                         onNavigateUp()
                     },
-                    enabled = name.isNotBlank() && phones.any { it.isNotBlank() }
+                    enabled = name.isNotBlank() && phones.any { it.number.isNotBlank() }
                 ) {
                     Text("Save")
                 }
@@ -100,11 +102,13 @@ fun CreateContactScreen(
             )
             phones.forEachIndexed { index, value ->
                 OutlinedTextField(
-                    value = value,
+                    value = value.number,
                     onValueChange = {
                         // only allow digits
                         val newPhone = it.filter { char -> char.isDigit() }
-                        phones = phones.toMutableList().apply { set(index, newPhone) }
+                        phones = phones.toMutableList().apply {
+                            set(index, value.copy(number = newPhone))
+                        }
                     },
                     label = { Text("Phone number #${index+1}") },
                     textStyle = typography.bodyLarge,
@@ -124,7 +128,7 @@ fun CreateContactScreen(
                         .padding(horizontal = 16.dp)
                 )
             }
-            TextButton(onClick = { phones = phones + "" },
+            TextButton(onClick = { phones += PhoneNumber("", PhoneNumberType.Mobile) },
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Text("Add phone")

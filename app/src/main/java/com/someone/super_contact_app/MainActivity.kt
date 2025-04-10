@@ -80,58 +80,6 @@ fun ContactApp() {
         )
         return
     }
+
     AppRouter()
-}
-
-enum class AppRoutes {
-    ContactList,
-    ContactDetail,
-    ContactEdit,
-    CreateContact
-}
-
-@Composable
-fun AppRouter(
-    navController: NavHostController = rememberNavController()
-) {
-    var currentContactId by remember { mutableStateOf("") }
-    NavHost(
-        navController = navController,
-        startDestination = AppRoutes.ContactList.name,
-        enterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> fullWidth }) + fadeIn() },
-        popEnterTransition = { slideInHorizontally(initialOffsetX = { fullWidth -> -fullWidth }) + fadeIn() },
-        exitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> -fullWidth }) + fadeOut() },
-        popExitTransition = { slideOutHorizontally(targetOffsetX = { fullWidth -> fullWidth }) + fadeOut() }
-    ) {
-        composable(AppRoutes.ContactList.name) {
-            ContactListScreen(
-                onCreateContactClicked = {
-                    navController.navigate(AppRoutes.CreateContact.name)
-                },
-                onContactClicked = { contactId ->
-                    currentContactId = contactId
-                    navController.navigate(AppRoutes.ContactDetail.name)
-                }
-            )
-        }
-        composable(AppRoutes.ContactDetail.name) {
-            ContactDetailScreen(
-                contactId = currentContactId,
-                onNavigateUp = { navController.navigateUp() },
-                onEditContactClicked = {
-                    navController.navigate(AppRoutes.ContactEdit.name)
-                }
-            )
-        }
-        composable(AppRoutes.ContactEdit.name) {
-            ContactEditScreen(
-                contactId = currentContactId,
-                onNavigateUp = { navController.navigateUp() },
-                onNavigateHome = { navController.popBackStack(AppRoutes.ContactList.name, inclusive = false) }
-            )
-        }
-        composable(AppRoutes.CreateContact.name) {
-            CreateContactScreen(onNavigateUp = { navController.navigateUp() })
-        }
-    }
 }
